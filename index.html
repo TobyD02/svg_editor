@@ -41,14 +41,44 @@
       }
 
       .active {
-        background-color: #888
+        background-color: #888;
+      }
+
+      #menu {
+        z-index: 10;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: black;
+        width: 100%;
+        height: 50px;
+        color: white;
+      }
+
+      .cursor-move {
+        cursor: move;
+      }
+
+      .cursor-pen {
+        cursor: url(assets/pen.svg) 4 4, auto;
+      }
+
+      .cursor-rect {
+        cursor: url(assets/rect.svg), auto;
       }
     </style>
   </head>
   <body>
+    <div id="menu">
+      DISPLAY TOOL OPTIONS HERE
+      <input type="color" id="color-picker">
+    </div>
     <div id="svg_container">
-      <svg id="svg_document" width="1920px" height="1080px" background-color="white">
-      </svg>
+      <svg id="svg_document" width="1920px" height="1080px" background-color="white"></svg>
     </div>
     <div id="toolbar">
       <div class="tool" id="pan" onclick="editor.setTool('pan')">
@@ -63,11 +93,14 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24">
           <path
             fill="currentColor"
-            d="M15.275 12.475L11.525 8.7L14.3 5.95l-.725-.725L8.8 10q-.3.3-.7.3t-.7-.3t-.3-.712t.3-.713l4.75-4.75q.6-.6 1.413-.6t1.412.6l.725.725l1.25-1.25q.3-.3.713-.3t.712.3L20.7 5.625q.3.3.3.713t-.3.712zM4 21q-.425 0-.712-.288T3 20v-1.925q0-.4.15-.763t.425-.637l6.525-6.55l3.775 3.75l-6.55 6.55q-.275.275-.637.425t-.763.15z" />
+            d="M20.235 11.284a2.3 2.3 0 0 0-3.01-.149l-1.781-5.391a2.48 2.48 0 0 0-2.1-1.7l-8.581-.93a1.5 1.5 0 0 0-1.648 1.651l.93 8.579a2.48 2.48 0 0 0 1.7 2.1l5.39 1.77a2.26 2.26 0 0 0-.51 1.43a2.257 2.257 0 0 0 2.25 2.25a2.26 2.26 0 0 0 1.591-.661l5.77-5.769a2.25 2.25 0 0 0 0-3.181Zm-14.18 3.21a1.5 1.5 0 0 1-1.02-1.26l-.9-8.39l4.01 4.01a1.19 1.19 0 0 0 .281 1.221a1.167 1.167 0 1 0 1.649-1.651a1.14 1.14 0 0 0-1.209-.269l-4.02-4.02l8.39.9a1.48 1.48 0 0 1 1.259 1.02l1.931 5.86l-4.51 4.51Zm11.709-2.51a1.25 1.25 0 0 1 2.13.891a1.24 1.24 0 0 1-.369.88l-5.771 5.77a1.277 1.277 0 0 1-1.769 0a1.253 1.253 0 0 1 0-1.76Z" />
         </svg>
         <div>pen</div>
       </div>
-      <div class="tool">grab</div>
+      <div class="tool" id="rect" onclick="editor.setTool('rect')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path fill="currentColor" d="M2 20V4h20v16z" /></svg>
+        <div>rect</div>
+      </div>
       <div class="tool">grab</div>
       <div class="tool">grab</div>
       <div class="tool">grab</div>

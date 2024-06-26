@@ -15,7 +15,15 @@ class Editor {
     this.tools = {
       pan: new PanTool(this),
       pen: new PenTool(this),
+      rect: new RectTool(this),
     };
+
+    this.colorPicker = document.getElementById("color-picker")
+    this.fillColor = this.colorPicker.value
+
+    this.colorPicker.addEventListener('input', (e) => {
+      this.fillColor = e.target.value
+    })
 
     this.state = {
       isPanning: false,
@@ -125,6 +133,8 @@ class Editor {
       this.tools[tool].element.classList.add("active");
 
       this.selectedTool = tool;
+      this.container.classList = []
+      this.tools[this.selectedTool].activate()
     }
   }
 
@@ -158,6 +168,11 @@ class Editor {
 
     this.svg.appendChild(element);
   }
+
+  setFillColor(color) {
+    this.fillColor = color;
+  }
+
 }
 
 class History {
@@ -206,11 +221,14 @@ class History {
     }));
     this.editor.state = state.state;
 
-    console.log(this.editor.objects)
-
-    if (this.editor.objects[this.editor.state.currentObject])
+    if (this.editor.objects[this.editor.state.currentObject]){
       this.editor.state.penPath = this.editor.objects[this.editor.state.currentObject].path
+
+    }
     else this.editor.state.penPath = []
+    
+    if (this.editor.state.currentObject > this.editor.objects.length - 1)
+      this.editor.state.currentObject = null
 
 
 

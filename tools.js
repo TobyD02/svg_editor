@@ -7,6 +7,7 @@ class Tool {
   mouseMove(e) {}
   mouseUp(e) {}
   keyDown(e) {}
+  activate() {}
 }
 
 class PanTool extends Tool {
@@ -15,8 +16,11 @@ class PanTool extends Tool {
     this.element = document.getElementById("pan");
   }
 
+  activate() {
+    this.editor.container.classList.add("cursor-move");
+  }
+
   mouseDown(e) {
-    this.editor.container.style.cursor = "grabbing";
     this.editor.state.isPanning = true;
     this.editor.state.startX = e.clientX - this.editor.state.panX;
     this.editor.state.startY = e.clientY - this.editor.state.panY;
@@ -32,7 +36,6 @@ class PanTool extends Tool {
 
   mouseUp(e) {
     this.editor.state.isPanning = false;
-    this.editor.container.style.cursor = "grab";
   }
 }
 
@@ -42,9 +45,11 @@ class PenTool extends Tool {
     this.element = document.getElementById("pen");
   }
 
+  activate() {
+    this.editor.container.classList.add("cursor-pen");
+  }
+
   mouseDown(e) {
-    this.editor.container.style.cursor = "url(assets/pen.png)";
-    
     const pos = this.editor.getTransformedPosition(e.clientX, e.clientY);
 
     if (this.editor.state.currentObject === null) {
@@ -54,7 +59,7 @@ class PenTool extends Tool {
       element.setAttribute("d", this.editor.state.penPath.join(" "));
       element.setAttribute("stroke", "black");
       element.setAttribute("stroke-width", "2");
-      element.setAttribute("fill", `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`);
+      element.setAttribute("fill", this.editor.fillColor);
 
       this.editor.svg.appendChild(element);
       this.editor.state.currentObject = this.editor.objects.length;
@@ -95,11 +100,96 @@ class PenTool extends Tool {
       const pos = this.editor.getTransformedPosition(e.clientX, e.clientY);
       const currentPath = [...this.editor.state.penPath];
       currentPath.push(`L ${pos.x} ${pos.y}`);
-  
+
       this.editor.objects[this.editor.state.currentObject].element.setAttribute("d", currentPath.join(" "));
     }
   }
-  
+
+  mouseUp(e) {
+    // console.log(this.editor.objects);
+  }
+
+  keyDown(e) {
+    if (e.key === "Escape") {
+      if (this.editor.state.currentObject !== null) {
+        const object = this.editor.objects[this.editor.state.currentObject];
+
+        // Append the starting point to close the path
+        if (object.pathPositions.length >= 2) {
+          const startPos = object.pathPositions[0];
+          this.editor.state.penPath.push(`L ${startPos.x} ${startPos.y}`);
+        }
+
+        // Update the SVG path element with the complete path
+        object.element.setAttribute("d", this.editor.state.penPath.join(" "));
+
+        // Remove the object if the path is not valid (optional)
+        if (this.editor.state.penPath.length <= 1) {
+          this.editor.svg.removeChild(object.element);
+          this.editor.objects.splice(this.editor.state.currentObject, 1);
+        }
+
+        this.editor.state.currentObject = null;
+        this.editor.state.penPath = [];
+      }
+    }
+  }
+}
+
+class RectTool extends Tool {
+  constructor(editor) {
+    super(editor);
+    this.element = document.getElementById("rect");
+  }
+
+  activate() {
+    this.editor.container.classList.add("cursor-rect");
+  }
+
+  mouseDown(e) {
+
+    const pos = this.editor.getTransformedPosition(e.clientX, e.clientY);
+
+    if (this.editor.state.currentObject === null) {
+      const element = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      this.editor.state.penPath = [`M ${pos.x} ${pos.y}`];
+
+      element.setAttribute("d", this.editor.state.penPath.join(" "));
+      element.setAttribute("stroke", "black");
+      element.setAttribute("stroke-width", "2");
+      element.setAttribute("fill", this.editor.fillColor);
+
+      this.editor.svg.appendChild(element);
+      this.editor.state.currentObject = this.editor.objects.length;
+
+      this.editor.objects.push({ element: element, path: this.editor.state.penPath, pathPositions: [pos] });
+    } else {
+
+      this.editor.objects[this.editor.state.currentObject].path = this.editor.state.penPath;
+
+      this.editor.state.currentObject = null;
+      this.editor.state.penPath = [];
+    }
+  }
+
+  mouseMove(e) {
+    if (this.editor.state.currentObject !== null && this.editor.objects[this.editor.state.currentObject]) {
+      const pos = this.editor.getTransformedPosition(e.clientX, e.clientY);
+
+      let initPos = this.editor.objects[this.editor.state.currentObject].pathPositions[0];
+      let path = [
+        `M ${initPos.x} ${initPos.y}`,
+        `L ${pos.x} ${initPos.y}`,
+        `L ${pos.x} ${pos.y}`,
+        `L ${initPos.x} ${pos.y}`,
+        `L ${initPos.x} ${initPos.y}`,
+      ];
+
+      this.editor.objects[this.editor.state.currentObject].path = path
+
+      this.editor.objects[this.editor.state.currentObject].element.setAttribute("d", path.join(" "));
+    }
+  }
 
   mouseUp(e) {
     // console.log(this.editor.objects);
