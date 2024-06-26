@@ -1,4 +1,5 @@
-// TODO: turn into class
+// TODO: Figure out how to add text. Currently objects are stored with path etc... but text isnt a path
+// This only matters for history, so each class (object) should be stored in its own way (path, text, etc...)
 
 /** @type{SVGSVGElement} */
 const svgDocument = document.getElementById("svg_document");
@@ -16,14 +17,25 @@ class Editor {
       pan: new PanTool(this),
       pen: new PenTool(this),
       rect: new RectTool(this),
+      text: new TextTool(this),
     };
 
-    this.colorPicker = document.getElementById("color-picker")
-    this.fillColor = this.colorPicker.value
+    this.fillColor = '#000000'
+    this.strokeColor = '#000000'
 
-    this.colorPicker.addEventListener('input', (e) => {
+    this.fillPicker = document.getElementById("fill-picker");
+
+    this.fillPicker.addEventListener("input", (e) => {
       this.fillColor = e.target.value
-    })
+      this.assignColors()
+    });
+
+    this.strokePicker = document.getElementById("stroke-picker");
+
+    this.strokePicker.addEventListener("input", (e) => {
+      this.strokeColor = e.target.value
+      this.assignColors()
+    });
 
     this.state = {
       isPanning: false,
@@ -44,14 +56,13 @@ class Editor {
     this.selectedTool = null;
 
     this.container.addEventListener("mousedown", (e) => {
-      this.history.captureState();
       if (Object.keys(this.tools).includes(this.selectedTool)) {
         this.tools[this.selectedTool].mouseDown(e);
       }
+      this.history.captureState();
     });
 
     this.container.addEventListener("mousemove", (e) => {
-
       if (Object.keys(this.tools).includes(this.selectedTool)) {
         this.tools[this.selectedTool].mouseMove(e);
       }
@@ -61,7 +72,6 @@ class Editor {
       if (Object.keys(this.tools).includes(this.selectedTool)) {
         this.tools[this.selectedTool].mouseUp(e);
       }
-
     });
 
     window.addEventListener("keydown", (e) => {
@@ -101,6 +111,11 @@ class Editor {
     this.setInitialCenter();
   }
 
+  assignColors() {
+    this.tools[this.selectedTool].setFillColor(this.fillColor);
+    this.tools[this.selectedTool].setStrokeColor(this.strokeColor);
+  }
+
   setInitialCenter() {
     const containerRect = this.container.getBoundingClientRect();
     const svgRect = this.svg.getBoundingClientRect();
@@ -133,8 +148,11 @@ class Editor {
       this.tools[tool].element.classList.add("active");
 
       this.selectedTool = tool;
-      this.container.classList = []
-      this.tools[this.selectedTool].activate()
+      this.container.classList = [];
+      this.tools[this.selectedTool].activate();
+      this.assignColors()
+
+
     }
   }
 
@@ -172,7 +190,6 @@ class Editor {
   setFillColor(color) {
     this.fillColor = color;
   }
-
 }
 
 class History {
@@ -194,7 +211,6 @@ class History {
     this.stack.splice(this.pointer + 1); // Clear redo stack
     this.stack.push({ state: state, objects: objects });
     this.pointer = this.stack.length - 1;
-
   }
 
   undo() {
@@ -221,16 +237,11 @@ class History {
     }));
     this.editor.state = state.state;
 
-    if (this.editor.objects[this.editor.state.currentObject]){
-      this.editor.state.penPath = this.editor.objects[this.editor.state.currentObject].path
+    if (this.editor.objects[this.editor.state.currentObject]) {
+      this.editor.state.penPath = this.editor.objects[this.editor.state.currentObject].path;
+    } else this.editor.state.penPath = [];
 
-    }
-    else this.editor.state.penPath = []
-    
-    if (this.editor.state.currentObject > this.editor.objects.length - 1)
-      this.editor.state.currentObject = null
-
-
+    if (this.editor.state.currentObject > this.editor.objects.length - 1) this.editor.state.currentObject = null;
 
     this.editor.updateTransform();
     this.editor.updateSVG();

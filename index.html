@@ -50,8 +50,8 @@
         top: 0;
         left: 0;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        flex-direction: row;
+        justify-content: space-evenly;
         align-items: center;
         background-color: black;
         width: 100%;
@@ -75,7 +75,14 @@
   <body>
     <div id="menu">
       DISPLAY TOOL OPTIONS HERE
-      <input type="color" id="color-picker">
+      <div>
+        <input type="color" id="fill-picker"> 
+        fill Color
+      </div>
+      <div>
+        <input type="color" id="stroke-picker"> 
+        stroke Color
+      </div>
     </div>
     <div id="svg_container">
       <svg id="svg_document" width="1920px" height="1080px" background-color="white"></svg>
@@ -101,7 +108,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path fill="currentColor" d="M2 20V4h20v16z" /></svg>
         <div>rect</div>
       </div>
-      <div class="tool">grab</div>
+      <div class="tool" id="text" onclick="editor.setTool('text')">text</div>
       <div class="tool">grab</div>
       <div class="tool">grab</div>
     </div>

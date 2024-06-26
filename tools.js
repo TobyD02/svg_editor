@@ -8,6 +8,7 @@ class Tool {
   mouseUp(e) {}
   keyDown(e) {}
   activate() {}
+  setColor(color){}
 }
 
 class PanTool extends Tool {
@@ -18,6 +19,9 @@ class PanTool extends Tool {
 
   activate() {
     this.editor.container.classList.add("cursor-move");
+  }
+
+  setColor(color) {
   }
 
   mouseDown(e) {
@@ -43,10 +47,20 @@ class PenTool extends Tool {
   constructor(editor) {
     super(editor);
     this.element = document.getElementById("pen");
+    this.fillColor = '#000000'
+    this.strokeColor = '#000000'
   }
 
   activate() {
     this.editor.container.classList.add("cursor-pen");
+  }
+
+  setStrokeColor(color){
+    this.strokeColor = color
+  }
+
+  setFillColor(color){
+    this.fillColor = color
   }
 
   mouseDown(e) {
@@ -57,9 +71,9 @@ class PenTool extends Tool {
       this.editor.state.penPath = [`M ${pos.x} ${pos.y}`];
 
       element.setAttribute("d", this.editor.state.penPath.join(" "));
-      element.setAttribute("stroke", "black");
+      element.setAttribute("stroke", this.strokeColor);
       element.setAttribute("stroke-width", "2");
-      element.setAttribute("fill", this.editor.fillColor);
+      element.setAttribute("fill", this.fillColor);
 
       this.editor.svg.appendChild(element);
       this.editor.state.currentObject = this.editor.objects.length;
@@ -140,10 +154,20 @@ class RectTool extends Tool {
   constructor(editor) {
     super(editor);
     this.element = document.getElementById("rect");
+    this.fillColor = '#000000'
+    this.strokeColor = '#000000'
   }
 
   activate() {
     this.editor.container.classList.add("cursor-rect");
+  }
+
+  setStrokeColor(color){
+    this.strokeColor = color
+  }
+
+  setFillColor(color){
+    this.fillColor = color
   }
 
   mouseDown(e) {
@@ -155,20 +179,14 @@ class RectTool extends Tool {
       this.editor.state.penPath = [`M ${pos.x} ${pos.y}`];
 
       element.setAttribute("d", this.editor.state.penPath.join(" "));
-      element.setAttribute("stroke", "black");
+      element.setAttribute("stroke", this.strokeColor);
       element.setAttribute("stroke-width", "2");
-      element.setAttribute("fill", this.editor.fillColor);
+      element.setAttribute("fill", this.fillColor);
 
       this.editor.svg.appendChild(element);
       this.editor.state.currentObject = this.editor.objects.length;
 
       this.editor.objects.push({ element: element, path: this.editor.state.penPath, pathPositions: [pos] });
-    } else {
-
-      this.editor.objects[this.editor.state.currentObject].path = this.editor.state.penPath;
-
-      this.editor.state.currentObject = null;
-      this.editor.state.penPath = [];
     }
   }
 
@@ -192,7 +210,11 @@ class RectTool extends Tool {
   }
 
   mouseUp(e) {
-    // console.log(this.editor.objects);
+    
+    this.editor.objects[this.editor.state.currentObject].path = this.editor.state.penPath;
+
+    this.editor.state.currentObject = null;
+    this.editor.state.penPath = [];
   }
 
   keyDown(e) {
@@ -219,5 +241,32 @@ class RectTool extends Tool {
         this.editor.state.penPath = [];
       }
     }
+  }
+}
+
+class TextTool extends Tool {
+  constructor(editor) {
+    super(editor);
+    this.element = document.getElementById("text");
+  }
+
+  mouseDown(e) {
+    if (this.editor.state.currentObject === null) {
+      const element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      this.editor.state.currentObject = this.editor.objects.length;
+      this.editor.objects.push({ element: element, path: [], pathPositions: [] });
+
+    }
+  }
+
+  mouseMove(e) {
+
+  }
+
+  mouseUp(e) {
+
+  }
+
+  keyDown(e) {
   }
 }
