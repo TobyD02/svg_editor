@@ -42,6 +42,7 @@ class Editor {
     });
 
     this.container.addEventListener("mousemove", (e) => {
+
       if (Object.keys(this.tools).includes(this.selectedTool)) {
         this.tools[this.selectedTool].mouseMove(e);
       }
@@ -52,7 +53,6 @@ class Editor {
         this.tools[this.selectedTool].mouseUp(e);
       }
 
-      console.log(this.objects);
     });
 
     window.addEventListener("keydown", (e) => {
@@ -179,17 +179,13 @@ class History {
     this.stack.push({ state: state, objects: objects });
     this.pointer = this.stack.length - 1;
 
-    console.log(this.stack);
   }
 
   undo() {
-    console.log(this.pointer);
     if (this.pointer > 0) {
       this.pointer--;
       const prevState = this.stack[this.pointer];
       this.restoreState(prevState);
-
-      console.log(this.stack);
     }
   }
 
@@ -202,16 +198,16 @@ class History {
   }
 
   restoreState(state) {
-    console.log("state", state);
-    this.editor.state = state.state;
-
     this.editor.objects = state.objects.map((obj) => ({
       element: obj.element.cloneNode(true), // Clone SVG element
       path: [...obj.path],
       pathPositions: [...obj.pathPositions],
     }));
+    this.editor.state = state.state;
 
-    console.log(state.objects);
+    this.editor.state.penPath = this.editor.objects[this.editor.state.currentObject].path
+
+
 
     this.editor.updateTransform();
     this.editor.updateSVG();

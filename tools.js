@@ -47,8 +47,6 @@ class PenTool extends Tool {
     
     const pos = this.editor.getTransformedPosition(e.clientX, e.clientY);
 
-    console.log(this.editor.state.currentObject, this.editor.objects[this.editor.state.currentObject])
-
     if (this.editor.state.currentObject === null) {
       const element = document.createElementNS("http://www.w3.org/2000/svg", "path");
       this.editor.state.penPath = [`M ${pos.x} ${pos.y}`];
@@ -63,7 +61,6 @@ class PenTool extends Tool {
 
       this.editor.objects.push({ element: element, path: this.editor.state.penPath, pathPositions: [pos] });
     } else {
-      console.log(this.editor.objects[this.editor.state.currentObject])
       const pathPoints = this.editor.objects[this.editor.state.currentObject].pathPositions;
 
       let dist = Infinity;
@@ -105,7 +102,7 @@ class PenTool extends Tool {
   
 
   mouseUp(e) {
-    console.log(this.editor.objects);
+    // console.log(this.editor.objects);
   }
 
   keyDown(e) {
