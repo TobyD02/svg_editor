@@ -10,6 +10,7 @@ class Editor {
     this.container = document.getElementById("svg_container");
 
     this.closeDistance = 20; // distance to close a path when clicking on it
+    this.zoomSpeed = 0.01;
 
     this.tools = {
       pan: new PanTool(this),
@@ -71,7 +72,7 @@ class Editor {
       e.preventDefault();
 
       const { clientX, clientY, deltaY } = e;
-      const zoomFactor = -deltaY * 0.001;
+      const zoomFactor = -deltaY * this.zoomSpeed;
       const newScale = Math.max(0.1, this.state.scale * (1 + zoomFactor));
 
       const rect = this.svg.getBoundingClientRect();
@@ -205,7 +206,11 @@ class History {
     }));
     this.editor.state = state.state;
 
-    this.editor.state.penPath = this.editor.objects[this.editor.state.currentObject].path
+    console.log(this.editor.objects)
+
+    if (this.editor.objects[this.editor.state.currentObject])
+      this.editor.state.penPath = this.editor.objects[this.editor.state.currentObject].path
+    else this.editor.state.penPath = []
 
 
 
