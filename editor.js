@@ -9,7 +9,7 @@ class Editor {
     this.svg = document.getElementById("svg_document");
     this.container = document.getElementById("svg_container");
 
-    this.closeDistance = 10;
+    this.closeDistance = 50; // distance to close a path when clicking on it
 
     this.tools = {
       pan: {
@@ -54,17 +54,34 @@ class Editor {
 
             this.svg.appendChild(element);
             this.state.currentObject = this.objects.length;
-            this.state.penStartPosition = pos;
 
-            this.objects.push({element: element, path: this.state.penPath, startPosition: pos});
+            this.objects.push({element: element, path: this.state.penPath, pathPositions: [pos]});
 
           } else {
-            const dist = Math.sqrt((pos.x - this.state.penStartPosition.x) ** 2 + (pos.y - this.state.penStartPosition.y) ** 2);
+
+
+            // Find closest point in this.state.penPath
+            const pathPoints = this.objects[this.state.currentObject].pathPositions;
+
+            let dist = Infinity;
+            let closestPoint = null;
+
+            for (let i = 0; i < pathPoints.length; i++) {
+              let pathDist = Math.sqrt((pathPoints[i].x - pos.x) ** 2 + (pathPoints[i].y - pos.y) ** 2);
+              if (pathDist < dist) {
+                dist = pathDist;
+                closestPoint = pathPoints[i];
+              }
+            }
+
+
+
+            // const dist = Math.sqrt((pos.x - this.state.penStartPosition.x) ** 2 + (pos.y - this.state.penStartPosition.y) ** 2);
 
             console.log("distance, " + dist);
 
             if (dist <= this.closeDistance) {
-              this.state.penPath.push(`L ${this.state.penStartPosition.x} ${this.state.penStartPosition.y}`);
+              this.state.penPath.push(`L ${closestPoint.x} ${closestPoint.y}`);
               this.objects[this.state.currentObject].element.setAttribute("d", this.state.penPath.join(" "));
               this.objects[this.state.currentObject].path = this.state.penPath;
 
@@ -75,6 +92,7 @@ class Editor {
               this.state.penPath.push(`L ${pos.x} ${pos.y}`);
               this.objects[this.state.currentObject].element.setAttribute("d", this.state.penPath.join(" "));
               this.objects[this.state.currentObject].path = this.state.penPath;
+              this.objects[this.state.currentObject].pathPositions.push(pos);
             }
           }
         },
