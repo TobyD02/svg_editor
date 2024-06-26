@@ -1,209 +1,116 @@
-// TODO: turn into class
+  // TODO: turn into class
 
-/** @type{SVGSVGElement} */
-const svgDocument = document.getElementById("svg_document");
-const svgContainer = document.getElementById("svg_container");
+  /** @type{SVGSVGElement} */
+  const svgDocument = document.getElementById("svg_document");
+  const svgContainer = document.getElementById("svg_container");
 
-class Editor {
-  constructor() {
-    this.svg = document.getElementById("svg_document");
-    this.container = document.getElementById("svg_container");
+  class Editor {
+    constructor() {
+      this.svg = document.getElementById("svg_document");
+      this.container = document.getElementById("svg_container");
 
-    this.closeDistance = 50; // distance to close a path when clicking on it
+      this.closeDistance = 50; // distance to close a path when clicking on it
 
-    this.tools = {
-      pan: {
-        element: document.getElementById("pan"),
-        mouseDown: (e) => {
-          this.container.style.cursor = "grabbing";
-          this.state.isPanning = true;
-          this.state.startX = e.clientX - this.state.panX;
-          this.state.startY = e.clientY - this.state.panY;
-        },
+      this.tools = {
+        pan: new PanTool(this),
+        pen: new PenTool(this),
+      };
 
-        mouseMove: (e) => {
-          if (this.state.isPanning) {
-            this.state.panX = e.clientX - this.state.startX;
-            this.state.panY = e.clientY - this.state.startY;
-            this.updateTransform();
-          }
-        },
+      this.state = {
+        isPanning: false,
+        startX: 0,
+        startY: 0,
+        scale: 1,
+        panX: 0,
+        panY: 0,
+        penPath: [""],
+        currentObject: null, // index of the current object inside this.objects
+      };
 
-        mouseUp: (e) => {
-          this.state.isPanning = false;
-          this.container.style.cursor = "grab";
-        },
-      },
-      pen: {
-        element: document.getElementById("pen"),
-        mouseDown: (e) => {
-          this.container.style.cursor = "url(./assets/pen.png), auto";
-          const pos = this.getTransformedPosition(e.clientX, e.clientY);
+      this.objects = [];
 
+      this.selectedTool = null;
 
-          // Check if we are starting a new path
-          if (this.state.currentObject === null) {
-            const element = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            this.state.penPath = [`M ${pos.x} ${pos.y}`];
+      this.container.addEventListener("mousedown", (e) => {
+        if (Object.keys(this.tools).includes(this.selectedTool)) {
+          this.tools[this.selectedTool].mouseDown(e);
+        }
+      });
 
-            element.setAttribute("d", this.state.penPath.join(" "));
-            element.setAttribute("stroke", "black");
-            element.setAttribute("stroke-width", "2");
-            element.setAttribute("fill", "none");
+      this.container.addEventListener("mousemove", (e) => {
+        if (Object.keys(this.tools).includes(this.selectedTool)) {
+          this.tools[this.selectedTool].mouseMove(e);
+        }
+      });
 
+      this.container.addEventListener("mouseup", (e) => {
+        if (Object.keys(this.tools).includes(this.selectedTool)) {
+          this.tools[this.selectedTool].mouseUp(e);
+        }
+      });
 
-            this.svg.appendChild(element);
-            this.state.currentObject = this.objects.length;
+      this.container.addEventListener("wheel", (e) => {
+        e.preventDefault();
+      
+        const { clientX, clientY, deltaY } = e;
+        const zoomFactor = -deltaY * 0.001;
+        const newScale = Math.max(0.1, this.state.scale * (1 + zoomFactor));
+      
+        const rect = this.svg.getBoundingClientRect();
+        const svgPoint = {
+          x: (clientX - rect.left) / this.state.scale,
+          y: (clientY - rect.top) / this.state.scale,
+        };
+      
+        // Calculate the new pan positions
+        this.state.panX -= svgPoint.x * (newScale - this.state.scale);
+        this.state.panY -= svgPoint.y * (newScale - this.state.scale);
+      
+        // Update the scale
+        this.state.scale = newScale;
+        this.updateTransform();
+      });
 
-            this.objects.push({element: element, path: this.state.penPath, pathPositions: [pos]});
+      this.setInitialCenter();
+    }
 
-          } else {
+    setInitialCenter() {
+      const containerRect = this.container.getBoundingClientRect();
+      const svgRect = this.svg.getBoundingClientRect();
 
+      const initialPanX = (containerRect.width - svgRect.width) / 2;
+      const initialPanY = (containerRect.height - svgRect.height) / 2;
 
-            // Find closest point in this.state.penPath
-            const pathPoints = this.objects[this.state.currentObject].pathPositions;
+      this.state.scale = Math.min(containerRect.width / svgRect.width, containerRect.height / svgRect.height) * 0.9;
 
-            let dist = Infinity;
-            let closestPoint = null;
+      this.state.panX = initialPanX;
+      this.state.panY = initialPanY;
 
-            for (let i = 0; i < pathPoints.length; i++) {
-              let pathDist = Math.sqrt((pathPoints[i].x - pos.x) ** 2 + (pathPoints[i].y - pos.y) ** 2);
-              if (pathDist < dist) {
-                dist = pathDist;
-                closestPoint = pathPoints[i];
-              }
-            }
-
-
-
-            // const dist = Math.sqrt((pos.x - this.state.penStartPosition.x) ** 2 + (pos.y - this.state.penStartPosition.y) ** 2);
-
-            console.log("distance, " + dist);
-
-            if (dist <= this.closeDistance) {
-              this.state.penPath.push(`L ${closestPoint.x} ${closestPoint.y}`);
-              this.objects[this.state.currentObject].element.setAttribute("d", this.state.penPath.join(" "));
-              this.objects[this.state.currentObject].path = this.state.penPath;
-
-              this.state.currentObject = null;
-              this.state.penPath = []
-            } else {
-              // Continue adding points
-              this.state.penPath.push(`L ${pos.x} ${pos.y}`);
-              this.objects[this.state.currentObject].element.setAttribute("d", this.state.penPath.join(" "));
-              this.objects[this.state.currentObject].path = this.state.penPath;
-              this.objects[this.state.currentObject].pathPositions.push(pos);
-            }
-          }
-        },
-
-        mouseMove: (e) => {
-          if (this.state.currentObject !== null) {
-            const pos = this.getTransformedPosition(e.clientX, e.clientY);
-            const currentPath = [...this.state.penPath];
-            currentPath.push(`L ${pos.x} ${pos.y}`);
-            this.objects[this.state.currentObject].element.setAttribute("d", currentPath.join(" "));
-          }
-        },
-        mouseUp: (e) => {
-          // console.log("pen mouse up");
-          console.log(this.objects)
-        },
-      },
-    };
-
-    this.state = {
-      isPanning: false,
-      startX: 0,
-      startY: 0,
-      scale: 1,
-      panX: 0,
-      panY: 0,
-      penPath: [""],
-      penStartPosition: { x: null, y: null },
-      currentObject: null, // index of the current object inside this.objects
-    };
-
-    this.objects = [];
-
-    this.selectedTool = null;
-
-    this.container.addEventListener("mousedown", (e) => {
-      if (Object.keys(this.tools).includes(this.selectedTool)) {
-        this.tools[this.selectedTool].mouseDown(e);
-      }
-    });
-
-    this.container.addEventListener("mousemove", (e) => {
-      if (Object.keys(this.tools).includes(this.selectedTool)) {
-        this.tools[this.selectedTool].mouseMove(e);
-      }
-    });
-
-    this.container.addEventListener("mouseup", (e) => {
-      if (Object.keys(this.tools).includes(this.selectedTool)) {
-        this.tools[this.selectedTool].mouseUp(e);
-      }
-    });
-
-    this.container.addEventListener("wheel", (e) => {
-      e.preventDefault();
-      const { offsetX, offsetY, deltaY } = e;
-      const zoomFactor = -deltaY * 0.001;
-      const newScale = Math.max(0.1, this.state.scale * (1 + zoomFactor));
-
-      const rect = this.svg.getBoundingClientRect();
-      const dx = (offsetX - rect.left) / this.state.scale;
-      const dy = (offsetY - rect.top) / this.state.scale;
-
-      this.state.panX -= dx * (newScale - this.state.scale);
-      this.state.panY -= dy * (newScale - this.state.scale);
-
-      this.state.scale = newScale;
       this.updateTransform();
-    });
+    }
 
-    this.setInitialCenter();
-  }
+    updateTransform() {
+      this.svg.style.transform = `translate(${this.state.panX}px, ${this.state.panY}px) scale(${this.state.scale})`;
+    }
 
-  setInitialCenter() {
-    const containerRect = this.container.getBoundingClientRect();
-    const svgRect = this.svg.getBoundingClientRect();
+    setTool(tool) {
+      if (Object.keys(this.tools).includes(tool)) {
+        Object.values(this.tools).forEach((t) => t.element.classList.remove("active"));
+        this.tools[tool].element.classList.add("active");
 
-    const initialPanX = (containerRect.width - svgRect.width) / 2;
-    const initialPanY = (containerRect.height - svgRect.height) / 2;
+        this.selectedTool = tool;
+      }
+    }
 
-    this.state.scale = Math.min(containerRect.width / svgRect.width, containerRect.height / svgRect.height) * 0.9;
+    getTransformedPosition(clientX, clientY) {
+      const svgRect = this.svg.getBoundingClientRect();
 
-    this.state.panX = initialPanX;
-    this.state.panY = initialPanY;
+      // Calculate the position relative to the SVG element itself
+      const x = (clientX - svgRect.left) / this.state.scale;
+      const y = (clientY - svgRect.top) / this.state.scale;
 
-    this.updateTransform();
-  }
-
-  updateTransform() {
-    this.svg.style.transform = `translate(${this.state.panX}px, ${this.state.panY}px) scale(${this.state.scale})`;
-  }
-
-  setTool(tool) {
-    if (Object.keys(this.tools).includes(tool)) {
-      Object.values(this.tools).forEach((t) => t.element.classList.remove("active"));
-      this.tools[tool].element.classList.add("active");
-
-      this.selectedTool = tool;
+      return { x, y };
     }
   }
 
-  getTransformedPosition(clientX, clientY) {
-    const rect = this.container.getBoundingClientRect();
-    const svgRect = this.svg.getBoundingClientRect();
-
-    // Calculate the position relative to the SVG element itself
-    const x = (clientX - svgRect.left) / this.state.scale;
-    const y = (clientY - svgRect.top) / this.state.scale;
-
-    return { x, y };
-  }
-}
-
-let editor = new Editor();
+  let editor = new Editor();
