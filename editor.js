@@ -44,7 +44,6 @@ class Editor {
       scale: 1,
       panX: 0,
       panY: 0,
-      penPath: [""],
       currentObject: null, // index of the current object inside this.objects
     };
 
@@ -59,7 +58,7 @@ class Editor {
       if (Object.keys(this.tools).includes(this.selectedTool)) {
         this.tools[this.selectedTool].mouseDown(e);
       }
-      this.history.captureState();
+      // this.history.captureState();
     });
 
     this.container.addEventListener("mousemove", (e) => {
@@ -72,6 +71,7 @@ class Editor {
       if (Object.keys(this.tools).includes(this.selectedTool)) {
         this.tools[this.selectedTool].mouseUp(e);
       }
+      // this.history.captureState();
     });
 
     window.addEventListener("keydown", (e) => {
@@ -109,6 +109,8 @@ class Editor {
     });
 
     this.setInitialCenter();
+
+    this.history.captureState() // Capture document initial state
   }
 
   assignColors() {
@@ -141,7 +143,6 @@ class Editor {
   }
 
   setTool(tool) {
-    this.history.captureState();
 
     if (Object.keys(this.tools).includes(tool)) {
       Object.values(this.tools).forEach((t) => t.element.classList.remove("active"));
@@ -167,24 +168,13 @@ class Editor {
   }
 
   createPage(width, height) {
-    const element = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const object = new Rect({ x: 0, y: 0 });
+    object.setFillColor("#ffffff")
 
-    const positions = [
-      { x: 0, y: 0 },
-      { x: width, y: 0 },
-      { x: width, y: height },
-      { x: 0, y: height },
-    ];
-    const path = `M ${positions[0].x} ${positions[0].y} L ${positions[1].x} ${positions[1].y} L ${positions[2].x} ${positions[2].y} L ${positions[3].x} ${positions[3].y} Z`;
+    object.pushPoint({x: width, y: height})
 
-    element.setAttribute("d", path);
-    element.setAttribute("stroke", "none");
-    element.setAttribute("stroke-width", "2");
-    element.setAttribute("fill", "white");
-
-    this.objects.push({ element: element, path: path, pathPositions: positions });
-
-    this.svg.appendChild(element);
+    this.svg.appendChild(object.element);
+    this.objects.push(object);
   }
 
   setFillColor(color) {
@@ -200,17 +190,27 @@ class History {
   }
 
   captureState() {
+    
     const state = this.editor.state;
+    const objects = this.editor.objects.map((obj) => obj.clone());
 
-    const objects = this.editor.objects.map((obj) => ({
-      element: obj.element.cloneNode(true), // Clone SVG element to capture current state
-      path: [...obj.path],
-      pathPositions: [...obj.pathPositions],
-    }));
+    console.log(objects)
+
+
+    // Dont capture state if states are equal
+    if (this.stack.length > 0) {
+      const lastState = this.stack[this.stack.length - 1]
+      if (this.areObjectsEqual(objects, lastState.objects)) {
+        return
+      }
+
+    }
 
     this.stack.splice(this.pointer + 1); // Clear redo stack
     this.stack.push({ state: state, objects: objects });
     this.pointer = this.stack.length - 1;
+
+    console.log('captured', this.stack)
   }
 
   undo() {
@@ -230,21 +230,27 @@ class History {
   }
 
   restoreState(state) {
-    this.editor.objects = state.objects.map((obj) => ({
-      element: obj.element.cloneNode(true), // Clone SVG element
-      path: [...obj.path],
-      pathPositions: [...obj.pathPositions],
-    }));
-    this.editor.state = state.state;
 
-    if (this.editor.objects[this.editor.state.currentObject]) {
-      this.editor.state.penPath = this.editor.objects[this.editor.state.currentObject].path;
-    } else this.editor.state.penPath = [];
+    this.editor.objects = state.objects.map((obj) => obj.clone());
+    this.editor.state = state.state;
 
     if (this.editor.state.currentObject > this.editor.objects.length - 1) this.editor.state.currentObject = null;
 
     this.editor.updateTransform();
     this.editor.updateSVG();
+  }
+
+  areStatesEqual(state1, state2) {
+    return JSON>stringify(state1) === JSON.stringify(state2)
+  }
+
+  areObjectsEqual(objects1, objects2) {
+    if (objects1.length !== objects2.length) return false;
+    for (let i = 0; i < objects1.length; i++) {
+      console.log(objects1[i], objects2[i])
+      if (!objects1[i].equals(objects2[i])) return false;
+    }
+    return true;
   }
 }
 
