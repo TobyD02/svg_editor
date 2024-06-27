@@ -133,6 +133,12 @@ class Editor {
 
   setTool(tool) {
     if (Object.keys(this.tools).includes(tool)) {
+
+      if (this.selectedTool !== null) {
+        this.tools[this.selectedTool].deactivate()
+        this.history.captureState();
+      }
+
       Object.values(this.tools).forEach((t) => t.element.classList.remove("active"));
       this.tools[tool].element.classList.add("active");
 

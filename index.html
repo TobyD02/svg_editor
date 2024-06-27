@@ -70,17 +70,21 @@
       .cursor-rect {
         cursor: url(assets/rect.svg), auto;
       }
+
+      .cursor-text {
+        cursor: url(assets/text.svg), auto;
+      }
     </style>
   </head>
   <body>
     <div id="menu">
       DISPLAY TOOL OPTIONS HERE
       <div>
-        <input type="color" id="fill-picker"> 
+        <input type="color" id="fill-picker" />
         fill Color
       </div>
       <div>
-        <input type="color" id="stroke-picker"> 
+        <input type="color" id="stroke-picker" />
         stroke Color
       </div>
     </div>
@@ -108,7 +112,14 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path fill="currentColor" d="M2 20V4h20v16z" /></svg>
         <div>rect</div>
       </div>
-      <div class="tool" id="text" onclick="editor.setTool('text')">text</div>
+      <div class="tool" id="text" onclick="editor.setTool('text')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 256 256">
+          <path
+            fill="currentColor"
+            d="M212 56v32a12 12 0 0 1-24 0V68h-48v120h20a12 12 0 0 1 0 24H96a12 12 0 0 1 0-24h20V68H68v20a12 12 0 0 1-24 0V56a12 12 0 0 1 12-12h144a12 12 0 0 1 12 12" />
+        </svg>
+        <div>text</div>
+      </div>
       <div class="tool">grab</div>
       <div class="tool">grab</div>
     </div>

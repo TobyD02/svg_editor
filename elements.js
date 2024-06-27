@@ -53,6 +53,11 @@ class Path {
     this.element.setAttribute("d", this.path.join(" ") + `L ${point.x} ${point.y}`);
   }
 
+  cancelTempPosition() {
+    this.element.setAttribute("d", this.path.join(" "));
+    this.tempPosition = null;
+  } 
+
   removePoints(index) {
     this.pathPositions.splice(index, 1);
     this.path.splice(index, 1);

@@ -10,6 +10,7 @@ class Tool {
   activate() {}
   setFillColor(e){}
   setStrokeColor(){}
+  deactivate(){}
 }
 
 class PanTool extends Tool {
@@ -146,6 +147,14 @@ class PenTool extends Tool {
       }
     }
   }
+
+
+  // If tool interrupted and replaced
+  deactivate() {
+    const object = this.editor.objects[this.editor.state.currentObject]
+    object.cancelTempPosition()
+    this.editor.state.currentObject = null;
+  }
 }
 
 class RectTool extends Tool {
@@ -162,6 +171,14 @@ class RectTool extends Tool {
 
   activate() {
     this.editor.container.classList.add("cursor-rect");
+  }
+
+  deactivate() {
+
+    const object = this.editor.objects[this.editor.state.currentObject]
+    this.editor.svg.removeChild(object.element);
+    this.editor.objects.splice(this.editor.state.currentObject, 1);
+    this.editor.state.currentObject = null
   }
 
   setStrokeColor(color){
@@ -237,31 +254,6 @@ class RectTool extends Tool {
     this.editor.state.currentObject = null;
 
   }
-
-  keyDown(e) {
-    if (e.key === "Escape") {
-      if (this.editor.state.currentObject !== null) {
-        const object = this.editor.objects[this.editor.state.currentObject];
-
-        // Append the starting point to close the path
-        if (object.pathPositions.length >= 2) {
-          const startPos = object.pathPositions[0];
-          this.editor.state.penPath.push(`L ${startPos.x} ${startPos.y}`);
-        }
-
-        // Update the SVG path element with the complete path
-        object.element.setAttribute("d", this.editor.state.penPath.join(" "));
-
-        // Remove the object if the path is not valid (optional)
-        if (this.editor.state.penPath.length <= 1) {
-          this.editor.svg.removeChild(object.element);
-          this.editor.objects.splice(this.editor.state.currentObject, 1);
-        }
-
-        this.editor.state.currentObject = null;
-      }
-    }
-  }
 }
 
 class TextTool extends Tool {
@@ -270,9 +262,18 @@ class TextTool extends Tool {
     this.element = document.getElementById("text");
     this.fillColor = '#000000'
     this.strokeColor = '#000000'
-    this.fontSize = 20
+    this.fontSize = 100
 
     this.validCharacters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-={}[]|\\:;\'"<>,.?/`~ '
+  }
+
+  activate() {
+    this.editor.container.classList.add("cursor-text");
+  }
+
+  deactivate() {
+    this.editor.state.currentObject = null
+    this.editor.history.captureState()
   }
 
   setStrokeColor(color){
@@ -316,8 +317,10 @@ class TextTool extends Tool {
       this.editor.state.currentObject = this.editor.objects.length;
       this.editor.objects.push(object);
     } else {
-      this.editor.state.currentObject = null
-      this.editor.history.captureState()
+      if (this.editor.state.currentObject !== null) {
+        this.editor.state.currentObject = null
+        this.editor.history.captureState()
+      }
     }
   }
 
