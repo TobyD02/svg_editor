@@ -238,6 +238,9 @@ class Text {
       if (this.currentLine > 0) {
         this.currentLine--
         this.text = this.lines[this.currentLine].textContent
+      } else {
+        // Tell parent to delete this object
+        return true
       }
     }
 

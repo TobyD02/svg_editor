@@ -275,6 +275,32 @@ class TextTool extends Tool {
     this.validCharacters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-={}[]|\\:;\'"<>,.?/`~ '
   }
 
+  setStrokeColor(color){
+    this.strokeColor = color
+
+    let object = this.editor.objects[this.editor.state.currentObject]
+    if (object)
+      object.setStrokeColor(color)
+  }
+
+  setFillColor(color){
+    this.fillColor = color
+
+    let object = this.editor.objects[this.editor.state.currentObject]
+
+    if (object)
+      object.setFillColor(color)
+  }
+
+  setStrokeWidth(width) {
+    this.strokeWidth = width
+
+    let object = this.editor.objects[this.editor.state.currentObject]
+
+    if (object)
+      object.setStrokeWidth(width)
+  }
+
   mouseDown(e) {
     if (this.editor.state.currentObject === null) {
 
@@ -295,14 +321,6 @@ class TextTool extends Tool {
     }
   }
 
-  mouseMove(e) {
-
-  }
-
-  mouseUp(e) {
-
-  }
-
   keyDown(e) {
     // e.preventDefault();
 
@@ -315,7 +333,8 @@ class TextTool extends Tool {
     } else if (e.key === "Backspace") {
       if (this.editor.state.currentObject !== null) {
         const object = this.editor.objects[this.editor.state.currentObject];
-        object.popText()
+        if (object.popText())
+          this.editor.state.currentObject = null;
       }
     } else if(e.key === "Enter") {
       if (this.editor.state.currentObject !== null) {
