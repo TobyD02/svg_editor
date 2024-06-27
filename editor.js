@@ -20,21 +20,21 @@ class Editor {
       text: new TextTool(this),
     };
 
-    this.fillColor = '#000000'
-    this.strokeColor = '#000000'
+    this.fillColor = "#000000";
+    this.strokeColor = "#000000";
 
     this.fillPicker = document.getElementById("fill-picker");
 
     this.fillPicker.addEventListener("input", (e) => {
-      this.fillColor = e.target.value
-      this.assignColors()
+      this.fillColor = e.target.value;
+      this.assignColors();
     });
 
     this.strokePicker = document.getElementById("stroke-picker");
 
     this.strokePicker.addEventListener("input", (e) => {
-      this.strokeColor = e.target.value
-      this.assignColors()
+      this.strokeColor = e.target.value;
+      this.assignColors();
     });
 
     this.state = {
@@ -92,25 +92,14 @@ class Editor {
       const { clientX, clientY, deltaY } = e;
       const zoomFactor = -deltaY * this.zoomSpeed;
       const newScale = Math.max(0.1, this.state.scale * (1 + zoomFactor));
-
-      const rect = this.svg.getBoundingClientRect();
-      const svgPoint = {
-        x: (clientX - rect.left) / this.state.scale,
-        y: (clientY - rect.top) / this.state.scale,
-      };
-
-      // Calculate the new pan positions
-      this.state.panX -= svgPoint.x * (newScale - this.state.scale);
-      this.state.panY -= svgPoint.y * (newScale - this.state.scale);
-
-      // Update the scale
+      
       this.state.scale = newScale;
       this.updateTransform();
     });
 
     this.setInitialCenter();
 
-    this.history.captureState() // Capture document initial state
+    this.history.captureState(); // Capture document initial state
   }
 
   assignColors() {
@@ -143,7 +132,6 @@ class Editor {
   }
 
   setTool(tool) {
-
     if (Object.keys(this.tools).includes(tool)) {
       Object.values(this.tools).forEach((t) => t.element.classList.remove("active"));
       this.tools[tool].element.classList.add("active");
@@ -151,9 +139,7 @@ class Editor {
       this.selectedTool = tool;
       this.container.classList = [];
       this.tools[this.selectedTool].activate();
-      this.assignColors()
-
-
+      this.assignColors();
     }
   }
 
@@ -169,9 +155,9 @@ class Editor {
 
   createPage(width, height) {
     const object = new Rect({ x: 0, y: 0 });
-    object.setFillColor("#ffffff")
+    object.setFillColor("#ffffff");
 
-    object.pushPoint({x: width, y: height})
+    object.pushPoint({ x: width, y: height });
 
     this.svg.appendChild(object.element);
     this.objects.push(object);
@@ -190,27 +176,24 @@ class History {
   }
 
   captureState() {
-    
     const state = this.editor.state;
     const objects = this.editor.objects.map((obj) => obj.clone());
 
-    console.log(objects)
-
+    console.log(objects);
 
     // Dont capture state if states are equal
     if (this.stack.length > 0) {
-      const lastState = this.stack[this.stack.length - 1]
+      const lastState = this.stack[this.stack.length - 1];
       if (this.areObjectsEqual(objects, lastState.objects)) {
-        return
+        return;
       }
-
     }
 
     this.stack.splice(this.pointer + 1); // Clear redo stack
     this.stack.push({ state: state, objects: objects });
     this.pointer = this.stack.length - 1;
 
-    console.log('captured', this.stack)
+    console.log("captured", this.stack);
   }
 
   undo() {
@@ -230,7 +213,6 @@ class History {
   }
 
   restoreState(state) {
-
     this.editor.objects = state.objects.map((obj) => obj.clone());
     this.editor.state = state.state;
 
@@ -241,13 +223,13 @@ class History {
   }
 
   areStatesEqual(state1, state2) {
-    return JSON>stringify(state1) === JSON.stringify(state2)
+    return JSON > stringify(state1) === JSON.stringify(state2);
   }
 
   areObjectsEqual(objects1, objects2) {
     if (objects1.length !== objects2.length) return false;
     for (let i = 0; i < objects1.length; i++) {
-      console.log(objects1[i], objects2[i])
+      console.log(objects1[i], objects2[i]);
       if (!objects1[i].equals(objects2[i])) return false;
     }
     return true;
