@@ -1,16 +1,27 @@
+/* TODO: Each tool needs a set of options that are displayed in the menu bar
+
+Maybe, tool has an array named options, that contains a subset of all possible options available.
+Only options in that array are shown (so i dont have to make new functionality for each one, i can just reuse and choose)
+
+*/
+
+
 class Tool {
   constructor(editor) {
     this.editor = editor;
+    this.options = []
   }
 
   mouseDown(e) {}
   mouseMove(e) {}
   mouseUp(e) {}
+  mouseWheel(e) {}
   keyDown(e) {}
   activate() {}
   setFillColor(e){}
   setStrokeColor(){}
   deactivate(){}
+  getOptions() {return this.options}
 }
 
 class PanTool extends Tool {
@@ -176,9 +187,12 @@ class RectTool extends Tool {
   deactivate() {
 
     const object = this.editor.objects[this.editor.state.currentObject]
-    this.editor.svg.removeChild(object.element);
-    this.editor.objects.splice(this.editor.state.currentObject, 1);
-    this.editor.state.currentObject = null
+
+    if (object) {
+      this.editor.svg.removeChild(object.element);
+      this.editor.objects.splice(this.editor.state.currentObject, 1);
+      this.editor.state.currentObject = null
+    }
   }
 
   setStrokeColor(color){
@@ -316,6 +330,8 @@ class TextTool extends Tool {
       
       this.editor.state.currentObject = this.editor.objects.length;
       this.editor.objects.push(object);
+
+
     } else {
       if (this.editor.state.currentObject !== null) {
         this.editor.state.currentObject = null
@@ -352,4 +368,88 @@ class TextTool extends Tool {
       }
     }
   }
+}
+
+class SelectTool extends Tool {
+  constructor(editor) {
+    super(editor);
+    this.element = document.getElementById("select");
+
+    this.selectionBox = document.getElementById("selection-box");
+    this.selectionBounds = {
+      fullContent: this.selectionBox.children[0],
+      topLeft: this.selectionBox.children[1],
+      topRight: this.selectionBox.children[2],
+      bottomLeft: this.selectionBox.children[3],
+      bottomRight: this.selectionBox.children[4],
+    }
+  }
+
+  activate() {
+    this.editor.container.classList.add("cursor-select");
+  }
+
+  mouseDown(e) {
+    if (this.editor.state.currentObject === null) {
+      const objects = document.elementsFromPoint(e.clientX, e.clientY)
+      
+      for (let i = 0; i < objects.length; i ++) {
+        if (objects[i].parentElement.id === 'svg_document') {
+          const index = this.editor.objects.findIndex(obj => obj.element === objects[i]);
+          if (index !== -1){
+            this.editor.state.currentObject = index
+            break
+          }
+        }
+      }  
+
+
+      console.log(this.editor.state.currentObject !== null)
+      if (this.editor.state.currentObject !== null) {
+        this.setSelectionBox()
+      }
+
+
+
+    } else {
+      if (this.editor.state.currentObject !== null) {
+        this.editor.state.currentObject = null
+        this.editor.history.captureState()
+      }
+    }
+  }
+
+  mouseWheel(e) {
+    if (this.editor.state.currentObject !== null) {
+      this.setSelectionBox()
+    }
+  }
+
+  setSelectionBox() {
+
+    const object = this.editor.objects[this.editor.state.currentObject].element
+    const bounds = object.getBoundingClientRect()
+
+    console.log(bounds)
+
+    this.selectionBounds.fullContent.setAttribute('x', bounds.left)
+    this.selectionBounds.fullContent.setAttribute('y', bounds.top)
+    this.selectionBounds.fullContent.setAttribute('width', bounds.width)
+    this.selectionBounds.fullContent.setAttribute('height', bounds.height)
+
+    this.selectionBounds.topLeft.setAttribute('x', bounds.left - 5)
+    this.selectionBounds.topLeft.setAttribute('y', bounds.top - 5)
+    
+    this.selectionBounds.topRight.setAttribute('x', bounds.left + bounds.width - 5)
+    this.selectionBounds.topRight.setAttribute('y', bounds.top - 5)
+
+    this.selectionBounds.bottomLeft.setAttribute('x', bounds.left - 5)
+    this.selectionBounds.bottomLeft.setAttribute('y', bounds.top + bounds.height - 5)
+    
+    this.selectionBounds.bottomRight.setAttribute('x', bounds.left + bounds.width - 5)
+    this.selectionBounds.bottomRight.setAttribute('y', bounds.top + bounds.height - 5)
+    
+    this.selectionBox.style.visibility = 'visible'
+  }
+
 }

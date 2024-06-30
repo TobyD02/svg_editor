@@ -44,7 +44,7 @@
         background-color: #888;
       }
 
-      #menu {
+      #options {
         z-index: 10;
         position: absolute;
         top: 0;
@@ -57,6 +57,17 @@
         width: 100%;
         height: 50px;
         color: white;
+      }
+
+      #selection-box {
+        z-index: 20;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        visibility: hidden;
       }
 
       .cursor-move {
@@ -72,12 +83,12 @@
       }
 
       .cursor-text {
-        cursor: url(assets/text.svg), auto;
+        cursor: url(assets/text.svg) 9 22, auto;
       }
     </style>
   </head>
   <body>
-    <div id="menu">
+    <div id="options">
       DISPLAY TOOL OPTIONS HERE
       <div>
         <input type="color" id="fill-picker" />
@@ -120,9 +131,24 @@
         </svg>
         <div>text</div>
       </div>
-      <div class="tool">grab</div>
+      <div class="tool" id="select" onclick="editor.setTool('select')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 256 256">
+          <path
+            fill="currentColor"
+            d="M212 56v32a12 12 0 0 1-24 0V68h-48v120h20a12 12 0 0 1 0 24H96a12 12 0 0 1 0-24h20V68H68v20a12 12 0 0 1-24 0V56a12 12 0 0 1 12-12h144a12 12 0 0 1 12 12" />
+        </svg>
+        <div>select</div>
+      </div>
       <div class="tool">grab</div>
     </div>
+
+    <svg id="selection-box">
+      <rect x="100" y="100" fill="none" stroke="#397fC0" stroke-width="2" width="100" height="100" />
+      <rect x="95" y="95" fill="white" stroke="#397fC0" stroke-width="1" width="10" height="10" />
+      <rect x="95" y="195" fill="white" stroke="#397fC0" stroke-width="1" width="10" height="10" />
+      <rect x="195" y="95" fill="white" stroke="#397fC0" stroke-width="1" width="10" height="10" />
+      <rect x="195" y="195" fill="white" stroke="#397fC0" stroke-width="1" width="10" height="10" />
+    </svg>
 
     <script src="elements.js"></script>
     <script src="tools.js"></script>

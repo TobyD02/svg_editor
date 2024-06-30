@@ -1,5 +1,8 @@
-// TODO: Figure out how to add text. Currently objects are stored with path etc... but text isnt a path
-// This only matters for history, so each class (object) should be stored in its own way (path, text, etc...)
+/* TODO: Add another SVG element for current selection. Should sit outside svg container and document.
+will have to do in html and maybe build another class for it? or integrate into editor (might make more sense)
+*/
+
+/* TODO: add layers */
 
 /** @type{SVGSVGElement} */
 const svgDocument = document.getElementById("svg_document");
@@ -13,11 +16,15 @@ class Editor {
     this.closeDistance = 20; // distance to close a path when clicking on it
     this.zoomSpeed = 0.01;
 
+    this.options = document.getElementById("options")
+    this.currentOptions = []
+
     this.tools = {
       pan: new PanTool(this),
       pen: new PenTool(this),
       rect: new RectTool(this),
       text: new TextTool(this),
+      select: new SelectTool(this),
     };
 
     this.fillColor = "#000000";
@@ -46,6 +53,8 @@ class Editor {
       panY: 0,
       currentObject: null, // index of the current object inside this.objects
     };
+
+    console.log(this.options)
 
     this.history = new History(this);
 
@@ -95,6 +104,7 @@ class Editor {
       
       this.state.scale = newScale;
       this.updateTransform();
+      this.tools[this.selectedTool].mouseWheel(e);
     });
 
     this.setInitialCenter();
@@ -139,7 +149,10 @@ class Editor {
         this.history.captureState();
       }
 
-      Object.values(this.tools).forEach((t) => t.element.classList.remove("active"));
+      Object.values(this.tools).forEach((t) => {
+        console.log(t)
+        t.element.classList.remove("active");
+      })
       this.tools[tool].element.classList.add("active");
 
       this.selectedTool = tool;
@@ -147,6 +160,7 @@ class Editor {
       this.tools[this.selectedTool].activate();
       this.assignColors();
     }
+
   }
 
   getTransformedPosition(clientX, clientY) {
@@ -171,6 +185,11 @@ class Editor {
 
   setFillColor(color) {
     this.fillColor = color;
+  }
+
+  setCurrentOptions() {
+    this.options = this.tools[this.selectedTool].getOptions()
+
   }
 }
 
