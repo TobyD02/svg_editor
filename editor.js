@@ -198,6 +198,8 @@ class History {
     this.editor = editor;
     this.stack = [];
     this.pointer = -1;
+
+    this.element = document.getElementById('history-tracker')
   }
 
   captureState() {
@@ -218,7 +220,8 @@ class History {
     this.stack.push({ state: state, objects: objects });
     this.pointer = this.stack.length - 1;
 
-    console.log("captured", this.stack);
+    // console.log("captured", this.stack);
+    this.updateElement()
   }
 
   undo() {
@@ -245,6 +248,8 @@ class History {
 
     this.editor.updateTransform();
     this.editor.updateSVG();
+
+    this.updateElement()
   }
 
   areStatesEqual(state1, state2) {
@@ -258,6 +263,23 @@ class History {
       if (!objects1[i].equals(objects2[i])) return false;
     }
     return true;
+  }
+
+  updateElement() {
+
+    const current = this.stack[this.pointer]
+
+
+    let content = ""
+    content += `scale: ${current.state.scale.toFixed(2)}<br> Objects:<br> `
+    
+    current.objects.forEach(obj => {
+      content += `&nbsp;&nbsp;&nbsp;&nbsp;${(obj.constructor.name)}<br>`
+    })
+
+    console.log(current)
+
+    this.element.innerHTML = content
   }
 }
 

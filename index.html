@@ -85,6 +85,21 @@
       .cursor-text {
         cursor: url(assets/text.svg) 9 22, auto;
       }
+
+      #history-tracker {
+        z-index: 20;
+        position: absolute;
+        top: calc(90% - 150px);
+        left: calc(90% - 150px);
+        width: 200px;
+        height: 200px;
+        /* transform: translate(-50%, -50%); */
+        /* pointer-events: none; */
+        background-color: rgba(150, 150,150, 0.8);
+        text-align: justify;
+        overflow: scroll;
+        line-break: auto;
+      }
     </style>
   </head>
   <body>
@@ -149,6 +164,10 @@
       <rect x="195" y="95" fill="white" stroke="#397fC0" stroke-width="1" width="10" height="10" />
       <rect x="195" y="195" fill="white" stroke="#397fC0" stroke-width="1" width="10" height="10" />
     </svg>
+
+    <div id="history-tracker">
+
+    </div>
 
     <script src="elements.js"></script>
     <script src="tools.js"></script>
